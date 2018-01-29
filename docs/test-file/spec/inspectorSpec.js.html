@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">spec/inspectorSpec.js | jsinspect</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  <script src="script/manual.js"></script>
+<meta name="description" content="jsinspect"><meta property="og:type" content="website"><meta property="og:url" content="https://github.com/danielstjules/jsinspect"><meta property="og:site_name" content="jsinspect"><meta property="og:title" content="jsinspect"><meta property="og:image" content="https://github.com/danielstjules/logo.png"><meta property="og:description" content="jsinspect"><meta property="og:author" content="https://github.com/danielstjules"><meta property="twitter:card" content="summary"><meta property="twitter:title" content="jsinspect"><meta property="twitter:description" content="jsinspect"><meta property="twitter:image" content="https://github.com/danielstjules/logo.png"></head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  <a href="test.html" data-ice="testLink">Test</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+<a style="position:relative; top:3px;" href="https://github.com/danielstjules/jsinspect"><img width="20px" src="./image/github.png"></a></header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/inspector.js~Inspector.html">Inspector</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/match.js~Match.html">Match</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/nodeUtils.js~NodeUtils.html">NodeUtils</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-parse">parse</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-childKeys">childKeys</a></span></span></li>
+<li data-ice="doc"><a data-ice="dirPath" class="nav-dir-path" href="identifiers.html#reporters">reporters</a><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/base.js~BaseReporter.html">BaseReporter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/default.js~DefaultReporter.html">DefaultReporter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/json.js~JSONReporter.html">JSONReporter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/pmd.js~PMDReporter.html">PMDReporter</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">spec/inspectorSpec.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">var expect       = require(&apos;expect.js&apos;);
+var EventEmitter = require(&apos;events&apos;).EventEmitter;
+var Inspector    = require(&apos;../lib/inspector&apos;);
+var fixtures     = require(&apos;./fixtures&apos;);
+
+describe(&apos;Inspector&apos;, function() {
+  // Used to test emitted events
+  var found;
+  var listener = function(match) {
+    found.push(match);
+  };
+
+  beforeEach(function() {
+    found = [];
+  });
+
+  describe(&apos;constructor&apos;, function() {
+    it(&apos;inherits from EventEmitter&apos;, function() {
+      expect(new Inspector()).to.be.an(EventEmitter);
+    });
+
+    it(&apos;accepts an array of file paths&apos;, function() {
+      var filePaths = [&apos;path1.js&apos;, &apos;path2.js&apos;];
+      var inspector = new Inspector(filePaths);
+      expect(inspector._filePaths).to.be(filePaths);
+    });
+
+    it(&apos;assigns a default threshold of 30&apos;, function() {
+      var inspector = new Inspector([]);
+      expect(inspector._threshold).to.be(30);
+    });
+
+    it(&apos;accepts an options object&apos;, function() {
+      var opts = {threshold: 12};
+      var inspector = new Inspector([], opts);
+      expect(inspector._threshold).to.be(opts.threshold);
+    });
+  });
+
+  describe(&apos;run&apos;, function() {
+    it(&apos;emits a start event&apos;, function() {
+      var emitted;
+      var inspector = new Inspector([fixtures.intersection]);
+      inspector.on(&apos;start&apos;, function() {
+        emitted = true;
+      });
+
+      inspector.run();
+      expect(emitted).to.be(true);
+    });
+
+    it(&apos;emits an end event&apos;, function() {
+      var emitted;
+      var inspector = new Inspector([fixtures.intersection]);
+      inspector.on(&apos;end&apos;, function() {
+        emitted = true;
+      });
+
+      inspector.run();
+      expect(emitted).to.be(true);
+    });
+
+    it(&apos;emits the &quot;match&quot; event when a match is found&apos;, function() {
+      var inspector = new Inspector([fixtures.intersection], {
+        threshold: 10
+      });
+
+      inspector.on(&apos;match&apos;, listener);
+      inspector.run();
+      expect(found).to.have.length(1);
+    });
+  });
+
+  it(&apos;can find an exact match between instances&apos;, function() {
+    var inspector = new Inspector([fixtures.intersection], {
+      threshold: 15
+    });
+
+    inspector.on(&apos;match&apos;, listener);
+    inspector.run();
+
+    var match = found[0];
+    expect(found).to.have.length(1);
+    expect(match.instances).to.have.length(2);
+    expect(match.instances[0].start).to.eql({line: 1, column: 0});
+    expect(match.instances[0].end).to.eql({line: 5, column: 1});
+    expect(match.instances[1].start).to.eql({line: 7, column: 0});
+    expect(match.instances[1].end).to.eql({line: 11, column: 1});
+  });
+
+  it(&apos;can find the largest match between two instances&apos;, function() {
+    var inspector = new Inspector([fixtures.redundantIntersection], {
+      threshold: 11
+    });
+
+    inspector.on(&apos;match&apos;, listener);
+    inspector.run();
+
+    var match = found[0];
+    expect(found).to.have.length(1);
+    expect(match.instances).to.have.length(2);
+    expect(match.instances[0].start).to.eql({line: 1, column: 0});
+    expect(match.instances[0].end).to.eql({line: 9, column: 1});
+    expect(match.instances[1].start).to.eql({line: 11, column: 0});
+    expect(match.instances[1].end).to.eql({line: 19, column: 1});
+  });
+
+  it(&apos;supports ES6&apos;, function() {
+    var inspector = new Inspector([fixtures.es6ClassExport], {
+      threshold: 20
+    });
+
+    inspector.on(&apos;match&apos;, listener);
+    inspector.run();
+
+    var match = found[0];
+    expect(found).to.have.length(1);
+    expect(match.instances).to.have.length(2);
+    expect(match.instances[0].start).to.eql({line: 2, column: 2});
+    expect(match.instances[0].end).to.eql({line: 6, column: 3});
+    expect(match.instances[1].start).to.eql({line: 8, column: 2});
+    expect(match.instances[1].end).to.eql({line: 12, column: 3});
+  });
+
+  it(&apos;supports JSX&apos;, function() {
+    var inspector = new Inspector([fixtures.jsxTodo], {
+      threshold: 20
+    });
+
+    inspector.on(&apos;match&apos;, listener);
+    inspector.run();
+
+    var match = found[0];
+    expect(found).to.have.length(1);
+    expect(match.instances).to.have.length(2);
+    expect(match.instances[0].start).to.eql({line: 3, column: 0});
+    expect(match.instances[0].end).to.eql({line: 9, column: 1});
+    expect(match.instances[1].start).to.eql({line: 11, column: 0});
+    expect(match.instances[1].end).to.eql({line: 17, column: 1});
+  });
+
+  it(&apos;supports Flow&apos;, function() {
+    var inspector = new Inspector([fixtures.flowIntersection], {
+      threshold: 20
+    });
+
+    inspector.on(&apos;match&apos;, listener);
+    inspector.run();
+
+    var match = found[0];
+    expect(found).to.have.length(1);
+    expect(match.instances).to.have.length(2);
+    expect(match.instances[0].start).to.eql({line: 1, column: 0});
+    expect(match.instances[0].end).to.eql({line: 5, column: 1});
+    expect(match.instances[1].start).to.eql({line: 7, column: 0});
+    expect(match.instances[1].end).to.eql({line: 11, column: 1});
+  });
+
+  it(&apos;includes the lines with the match&apos;, function() {
+    var inspector = new Inspector([fixtures.intersection], {
+      threshold: 11,
+    });
+
+    inspector.on(&apos;match&apos;, listener);
+    inspector.run();
+
+    var match = found[0];
+    expect(found).to.have.length(1);
+    expect(match.instances).to.have.length(2);
+    expect(match.instances[0].lines).to.be(
+      &apos;function intersectionA(array1, array2) {\n&apos; +
+      &apos;  array1.filter(function(n) {\n&apos; +
+      &apos;    return array2.indexOf(n) != -1;\n&apos; +
+      &apos;  });\n&apos; +
+      &apos;}&apos;
+    );
+    expect(match.instances[1].lines).to.be(
+      &apos;function intersectionB(arrayA, arrayB) {\n&apos; +
+      &apos;  arrayA.filter(function(n) {\n&apos; +
+      &apos;    return arrayB.indexOf(n) != -1;\n&apos; +
+      &apos;  });\n&apos; +
+      &apos;}&apos;
+    );
+  });
+
+  it(&apos;ignores matches with less than the supplied minimum&apos;, function() {
+    var inspector = new Inspector([fixtures.matches], {
+      threshold: 2,
+      minInstances: 3
+    });
+
+    inspector.on(&apos;match&apos;, listener);
+    inspector.run();
+    expect(found).to.have.length(1);
+    expect(found[0].instances).to.have.length(3);
+  });
+
+  it(&apos;ignores CommonJS require statements&apos;, function() {
+    var inspector = new Inspector([fixtures.commonjs], {
+      threshold: 3
+    });
+
+    inspector.on(&apos;match&apos;, listener);
+    inspector.run();
+    expect(found).to.have.length(0);
+  });
+
+  it(&apos;ignores AMD define expressions&apos;, function() {
+    var inspector = new Inspector([fixtures.amd], {
+      threshold: 5
+    });
+
+    inspector.on(&apos;match&apos;, listener);
+    inspector.run();
+    expect(found).to.have.length(0);
+  });
+});
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(1.0.4)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../../">
+  <title data-ice="title">lib/reporters/pmd.js | jsinspect</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  <script src="script/manual.js"></script>
+<meta name="description" content="jsinspect"><meta property="og:type" content="website"><meta property="og:url" content="https://github.com/danielstjules/jsinspect"><meta property="og:site_name" content="jsinspect"><meta property="og:title" content="jsinspect"><meta property="og:image" content="https://github.com/danielstjules/logo.png"><meta property="og:description" content="jsinspect"><meta property="og:author" content="https://github.com/danielstjules"><meta property="twitter:card" content="summary"><meta property="twitter:title" content="jsinspect"><meta property="twitter:description" content="jsinspect"><meta property="twitter:image" content="https://github.com/danielstjules/logo.png"></head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  <a href="test.html" data-ice="testLink">Test</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+<a style="position:relative; top:3px;" href="https://github.com/danielstjules/jsinspect"><img width="20px" src="./image/github.png"></a></header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/inspector.js~Inspector.html">Inspector</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/match.js~Match.html">Match</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/nodeUtils.js~NodeUtils.html">NodeUtils</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-parse">parse</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-childKeys">childKeys</a></span></span></li>
+<li data-ice="doc"><a data-ice="dirPath" class="nav-dir-path" href="identifiers.html#reporters">reporters</a><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/base.js~BaseReporter.html">BaseReporter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/default.js~DefaultReporter.html">DefaultReporter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/json.js~JSONReporter.html">JSONReporter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/pmd.js~PMDReporter.html">PMDReporter</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">lib/reporters/pmd.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">var util         = require(&apos;util&apos;);
+var path         = require(&apos;path&apos;);
+var chalk        = require(&apos;chalk&apos;);
+var BaseReporter = require(&apos;./base&apos;);
+
+/**
+ *
+ */
+class PMDReporter extends BaseReporter {
+  /**
+   * A PMD CPD XML reporter, which tries to fit jsinspect&apos;s output to something
+   * CI tools might expect from PMD.
+   *
+   * @constructor
+   *
+   * @param {Inspector} inspector Instance on which to register its listeners
+   * @param {object}    opts      Options to set for the reporter
+   */
+  constructor(inspector, opts) {
+    opts = opts || {};
+    super(inspector, opts);
+
+    var enabled = chalk.enabled;
+
+    inspector.on(&apos;start&apos;, () =&gt; {
+      chalk.enabled = false;
+      this._writableStream.write(
+        &apos;&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;\n&apos; +
+        &apos;&lt;pmd-cpd&gt;\n&apos;
+      );
+    });
+
+    inspector.on(&apos;end&apos;, () =&gt; {
+      chalk.enabled = enabled;
+      this._writableStream.write(&apos;&lt;/pmd-cpd&gt;\n&apos;);
+    });
+  }
+
+  /**
+   * Returns an XML string containing a &lt;duplication&gt; element, with &lt;file&gt;
+   * children indicating the instance locations, and &lt;codefragment&gt; to hold the
+   * lines.
+   *
+   * @private
+   *
+   * @param   {Match}  match The inspector match to output
+   * @returns {string} The formatted output
+   */
+  _getOutput(match) {
+    var output = (this._found &gt; 1) ? &apos;\n&apos; : &apos;&apos;;
+    var codeFragment = &apos;&apos;;
+    var instances = match.instances;
+    var totalLines = this._getTotalLines(match);
+
+    output += `&lt;duplication lines=&quot;${totalLines}&quot; id=&quot;${match.hash}&quot;&gt;\n`;
+    instances.forEach((instance) =&gt; output += this._getFile(instance));
+
+    output += &apos;&lt;codefragment&gt;&apos;;
+    instances.forEach((instance) =&gt; {
+      var location = this._getFormattedLocation(instance);
+      var lines = this._getLines(instance);
+      codeFragment += `\n${location}\n${chalk.grey(lines)}\n`;
+    });
+    output += `${this._escape(codeFragment)}&lt;/codefragment&gt;\n&lt;/duplication&gt;\n`;
+
+    return output;
+  }
+
+  /**
+   * Returns the total number of lines spanned by a match.
+   *
+   * @param   {Match} match
+   * @returns {int}
+   */
+  _getTotalLines(match) {
+    return match.instances.reduce((res, curr) =&gt; {
+      return res + curr.end.line - curr.start.line + 1;
+    }, 0);
+  }
+
+  /**
+   * Returns an XML string containing the path to the file in which the instance
+   * is located, as well as its starting line. Absolute paths are required for
+   * Jenkins.
+   *
+   * @param   {object} instance
+   * @returns {string}
+   */
+  _getFile(instance) {
+    var filePath = this._getAbsolutePath(instance.filename);
+    return `&lt;file path=&quot;${filePath}&quot; line=&quot;${instance.start.line}&quot;/&gt;\n`;
+  }
+
+  /**
+   * Returns an escaped string for use within XML.
+   *
+   * @param   {string} string The string to escape
+   * @returns {string} The escaped string
+   */
+  _escape(string) {
+    var escaped = {
+      &quot;&apos;&quot;: &apos;&amp;apos;&apos;,
+      &apos;&quot;&apos;: &apos;&amp;quot;&apos;,
+      &apos;&amp;&apos;: &apos;&amp;amp;&apos;,
+      &apos;&gt;&apos;: &apos;&amp;gt;&apos;,
+      &apos;&lt;&apos;: &apos;&amp;lt;&apos;
+    };
+
+    return string.replace(/([&apos;&quot;&amp;&gt;&lt;])/g, (string, char) =&gt; {
+      return escaped[char];
+    });
+  }
+}
+
+module.exports = PMDReporter;
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(1.0.4)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

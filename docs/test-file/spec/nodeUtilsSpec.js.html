@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">spec/nodeUtilsSpec.js | jsinspect</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  <script src="script/manual.js"></script>
+<meta name="description" content="jsinspect"><meta property="og:type" content="website"><meta property="og:url" content="https://github.com/danielstjules/jsinspect"><meta property="og:site_name" content="jsinspect"><meta property="og:title" content="jsinspect"><meta property="og:image" content="https://github.com/danielstjules/logo.png"><meta property="og:description" content="jsinspect"><meta property="og:author" content="https://github.com/danielstjules"><meta property="twitter:card" content="summary"><meta property="twitter:title" content="jsinspect"><meta property="twitter:description" content="jsinspect"><meta property="twitter:image" content="https://github.com/danielstjules/logo.png"></head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  <a href="test.html" data-ice="testLink">Test</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+<a style="position:relative; top:3px;" href="https://github.com/danielstjules/jsinspect"><img width="20px" src="./image/github.png"></a></header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/inspector.js~Inspector.html">Inspector</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/match.js~Match.html">Match</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/nodeUtils.js~NodeUtils.html">NodeUtils</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-parse">parse</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-childKeys">childKeys</a></span></span></li>
+<li data-ice="doc"><a data-ice="dirPath" class="nav-dir-path" href="identifiers.html#reporters">reporters</a><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/base.js~BaseReporter.html">BaseReporter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/default.js~DefaultReporter.html">DefaultReporter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/json.js~JSONReporter.html">JSONReporter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/pmd.js~PMDReporter.html">PMDReporter</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">spec/nodeUtilsSpec.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">var expect    = require(&apos;expect.js&apos;);
+var fixtures  = require(&apos;./fixtures&apos;);
+var helpers   = require(&apos;./helpers&apos;);
+var NodeUtils = require(&apos;../lib/nodeUtils&apos;);
+
+describe(&apos;NodeUtils&apos;, function() {
+  describe(&apos;walkSubtrees&apos;, function() {
+    it(&apos;walks each child node using DFS&apos;, function() {
+      var res = [];
+      var root = helpers.parse(fixtures.simple)[0];
+      NodeUtils.walkSubtrees(root, node =&gt; res.push(node.type));
+      expect(res).to.eql([
+        &apos;ExpressionStatement&apos;,
+        &apos;UpdateExpression&apos;,
+        &apos;Identifier&apos;,
+        &apos;ExpressionStatement&apos;,
+        &apos;CallExpression&apos;,
+        &apos;Identifier&apos;
+      ]);
+    });
+  });
+
+  describe(&apos;getDFSTraversal&apos;, function() {
+    it(&apos;returns the DFS traversal of the AST&apos;, function() {
+      var res = [];
+      var ast = helpers.parse(fixtures.simple)[0];
+      var res = NodeUtils.getDFSTraversal(ast).map(node =&gt; node.type);
+      expect(res).to.eql([
+        &apos;BlockStatement&apos;,
+        &apos;ExpressionStatement&apos;,
+        &apos;UpdateExpression&apos;,
+        &apos;Identifier&apos;,
+        &apos;ExpressionStatement&apos;,
+        &apos;CallExpression&apos;,
+        &apos;Identifier&apos;
+      ]);
+    });
+  });
+
+  describe(&apos;getBFSTraversal&apos;, function() {
+    it(&apos;returns the BFS traversal of the AST&apos;, function() {
+      var res = [];
+      var ast = helpers.parse(fixtures.simple)[0];
+      var res = NodeUtils.getBFSTraversal(ast).map(node =&gt; node.type);
+      expect(res).to.eql([
+        &apos;BlockStatement&apos;,
+        &apos;ExpressionStatement&apos;,
+        &apos;ExpressionStatement&apos;,
+        &apos;UpdateExpression&apos;,
+        &apos;CallExpression&apos;,
+        &apos;Identifier&apos;,
+        &apos;Identifier&apos;
+      ]);
+    });
+  });
+
+  describe(&apos;getChildren&apos;, function() {
+    it(&apos;returns the children of a Node&apos;, function() {
+      var parent = helpers.parse(fixtures.intersection)[0];
+      var res = NodeUtils.getChildren(parent);
+      // Children should be the three identifiers intersectionA,
+      // array1, and array2, followed by a block statement
+      expect(res.map(node =&gt; node.type)).to.eql([
+        &apos;Identifier&apos;,
+        &apos;Identifier&apos;,
+        &apos;Identifier&apos;,
+        &apos;BlockStatement&apos;
+      ])
+    });
+
+    it(&apos;ignores null children&apos;, function() {
+      var parent = helpers.parse(fixtures.nullChildren)[1].expression.left;
+      // parent.elements is an array with a leading null that should be ignored,
+      // followed by an identifier
+      var res = NodeUtils.getChildren(parent);
+      expect(res).to.have.length(1);
+      expect(res[0].type).to.be(&apos;Identifier&apos;);
+    });
+
+    it(&apos;ignores empty JSXText nodes&apos;, function() {
+      var parent = helpers.parse(fixtures.jsxNesting)[0].expression;
+      var res = NodeUtils.getChildren(parent);
+      res.forEach(node =&gt; expect(node.type).not.to.be(&apos;JSXText&apos;));
+    });
+  });
+
+  describe(&apos;isBefore&apos;, function() {
+    describe(&apos;given nodes with different line numbers&apos;, function() {
+      it(&apos;returns true if the first node has a lower line number&apos;, function() {
+        var res = NodeUtils.isBefore(
+          {loc: {start: {line: 0, column: 0}}},
+          {loc: {start: {line: 1, column: 0}}}
+        );
+        expect(res).to.be(true);
+      });
+
+      it(&apos;returns false if the first node has a higher numbered line&apos;, function() {
+        var res = NodeUtils.isBefore(
+          {loc: {start: {line: 1, column: 0}}},
+          {loc: {start: {line: 0, column: 0}}}
+        );
+        expect(res).to.be(false);
+      });
+    });
+
+    describe(&apos;given nodes with the same line number&apos;, function() {
+      it(&apos;returns true if the first node has a lower column number&apos;, function() {
+        var res = NodeUtils.isBefore(
+          {loc: {start: {line: 0, column: 0}}},
+          {loc: {start: {line: 0, column: 1}}}
+        );
+        expect(res).to.be(true);
+      });
+
+      it(&apos;returns false if the first node has a higher column number&apos;, function() {
+        var res = NodeUtils.isBefore(
+          {loc: {start: {line: 0, column: 1}}},
+          {loc: {start: {line: 0, column: 0}}}
+        );
+        expect(res).to.be(false);
+      });
+    });
+  });
+
+  describe(&apos;isES6ModuleImport&apos;, function() {
+    it(&apos;returns true for an import declaration&apos;, function() {
+      // ImportDeclaration
+      var nodes = [helpers.parse(fixtures.es6Module)[0]];
+      expect(NodeUtils.isES6ModuleImport(nodes)).to.be(true);
+    });
+
+    it(&apos;returns false for export declaration&apos;, function() {
+      // ExportNamedDeclaration
+      var nodes = [helpers.parse(fixtures.es6Module)[1]];
+      expect(NodeUtils.isES6ModuleImport(nodes)).to.be(false);
+    });
+
+    it(&apos;returns false otherwise&apos;, function() {
+      var nodes = helpers.parse(fixtures.commonjs);
+      expect(NodeUtils.isES6ModuleImport(nodes)).to.be(false);
+    });
+  });
+
+  describe(&apos;isAMD&apos;, function() {
+    it(&apos;returns true for an expression containing a define&apos;, function() {
+      // First expression is define
+      var nodes = [helpers.parse(fixtures.amd)[0]];
+      expect(NodeUtils.isAMD(nodes)).to.be(true);
+    });
+
+    it(&apos;returns true for an expression containing a define&apos;, function() {
+      // Third expression is require
+      var nodes = [helpers.parse(fixtures.amd)[2]];
+      expect(NodeUtils.isAMD(nodes)).to.be(true);
+    });
+
+    it(&apos;returns true even if the function is a property&apos;, function() {
+      var nodes = [helpers.parse(fixtures.amd)[4]];
+      expect(NodeUtils.isAMD(nodes)).to.be(true);
+    });
+
+    it(&apos;returns true even if a nested property&apos;, function() {
+      var nodes = [helpers.parse(fixtures.amd)[6]];
+      expect(NodeUtils.isAMD(nodes)).to.be(true);
+    });
+
+    it(&apos;returns false otherwise&apos;, function() {
+      var nodes = helpers.parse(fixtures.commonjs);
+      expect(NodeUtils.isAMD(nodes)).to.be(false);
+    });
+  });
+
+  describe(&apos;isCommonJS&apos;, function() {
+    it(&apos;returns true for an expression containing a require&apos;, function() {
+      // First node is an ExpressionStatement
+      var nodes = [helpers.parse(fixtures.commonjs)[0]];
+      expect(NodeUtils.isCommonJS(nodes)).to.be(true);
+    });
+
+    it(&apos;returns true for a declaration containing a require&apos;, function() {
+      // Second node is a VariableDeclaration
+      var nodes = [helpers.parse(fixtures.commonjs)[1]];
+      expect(NodeUtils.isCommonJS(nodes)).to.be(true);
+    });
+
+    it(&apos;returns false otherwise&apos;, function() {
+      var nodes = helpers.parse(fixtures.amd);
+      expect(NodeUtils.isCommonJS(nodes)).to.be(false);
+    });
+  });
+
+  describe(&apos;typesMatch&apos;, function() {
+    it(&apos;returns true if all node types match&apos;, function() {
+      var res = NodeUtils.typesMatch([
+        {type: &apos;a&apos;}, {type: &apos;a&apos;}, {type: &apos;a&apos;}
+      ]);
+      expect(res).to.be(true);
+    });
+
+    it(&apos;returns false if not all node types match&apos;, function() {
+      var res = NodeUtils.typesMatch([
+        {type: &apos;a&apos;}, {type: &apos;a&apos;}, {type: &apos;b&apos;}
+      ]);
+      expect(res).to.be(false);
+    });
+  });
+
+  describe(&apos;identifiersMatch&apos;, function() {
+    it(&apos;returns true if all node are matching identifiers&apos;, function() {
+      var res = NodeUtils.identifiersMatch([
+        {name: &apos;a&apos;}, {name: &apos;a&apos;}, {name: &apos;a&apos;}
+      ]);
+      expect(res).to.be(true);
+    });
+
+    it(&apos;returns false if not all node names match&apos;, function() {
+      var res = NodeUtils.identifiersMatch([
+        {name: &apos;a&apos;}, {name: &apos;a&apos;}, {name: &apos;b&apos;}
+      ]);
+      expect(res).to.be(false);
+    });
+  });
+
+  describe(&apos;literalsMatch&apos;, function() {
+    it(&apos;returns true if all literals have the same value&apos;, function() {
+      var res = NodeUtils.literalsMatch([
+        {type: &apos;Literal&apos;, value: &apos;a&apos;},
+        {type: &apos;Literal&apos;, value: &apos;a&apos;},
+        {type: &apos;Literal&apos;, value: &apos;a&apos;}
+      ]);
+      expect(res).to.be(true);
+    });
+
+    it(&apos;returns false if not all literals have the same value&apos;, function() {
+      var res = NodeUtils.literalsMatch([
+        {type: &apos;Literal&apos;, value: &apos;a&apos;},
+        {type: &apos;Literal&apos;, value: &apos;a&apos;},
+        {type: &apos;Literal&apos;, value: &apos;b&apos;}
+      ]);
+      expect(res).to.be(false);
+    });
+
+    it(&apos;treats JSXText as a literal&apos;, function() {
+      var res = NodeUtils.literalsMatch([
+        {type: &apos;JSXText&apos;, value: &apos;a&apos;},
+        {type: &apos;JSXText&apos;, value: &apos;a&apos;},
+        {type: &apos;JSXText&apos;, value: &apos;b&apos;}
+      ]);
+      expect(res).to.be(false);
+    });
+
+    it(&apos;ignores the values of nodes which are not literals&apos;, function() {
+      var res = NodeUtils.literalsMatch([
+        {type: &apos;Foo&apos;, value: &apos;a&apos;},
+        {type: &apos;Foo&apos;, value: &apos;a&apos;},
+        {type: &apos;Foo&apos;, value: &apos;b&apos;}
+      ]);
+      expect(res).to.be(true);
+    });
+  });
+});
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(1.0.4)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

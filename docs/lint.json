@@ -1,0 +1,112 @@
+[
+  {
+    "name": "Inspector#_walkSiblings",
+    "filePath": "lib/inspector.js",
+    "lines": [
+      {
+        "lineNumber": 104,
+        "line": "  /**"
+      },
+      {
+        "lineNumber": 105,
+        "line": "   * Walks sibling nodes under a parent, grouping their DFS traversals, and"
+      },
+      {
+        "lineNumber": 106,
+        "line": "   * invoking the callback for those that wouldn't otherwise meet the threshold."
+      },
+      {
+        "lineNumber": 107,
+        "line": "   * Helpful for nodes like BlockStatements that hold a sequence. Note that"
+      },
+      {
+        "lineNumber": 108,
+        "line": "   * this will generate overlapping instances, and so _omitOverlappingInstances"
+      },
+      {
+        "lineNumber": 109,
+        "line": "   * helps cleanup the results."
+      },
+      {
+        "lineNumber": 110,
+        "line": "   *"
+      },
+      {
+        "lineNumber": 111,
+        "line": "   * @private"
+      },
+      {
+        "lineNumber": 112,
+        "line": "   *"
+      },
+      {
+        "lineNumber": 113,
+        "line": "   * @param {Node}     node The node to traverse"
+      },
+      {
+        "lineNumber": 114,
+        "line": "   * @param {function} fn   The callback to invoke"
+      },
+      {
+        "lineNumber": 115,
+        "line": "   */"
+      },
+      {
+        "lineNumber": 116,
+        "line": "  _walkSiblings(parent, fn) {"
+      }
+    ],
+    "codeParams": [
+      "parent",
+      "fn"
+    ],
+    "docParams": [
+      "node",
+      "fn"
+    ]
+  },
+  {
+    "name": "NodeUtils.getChildren",
+    "filePath": "lib/nodeUtils.js",
+    "lines": [
+      {
+        "lineNumber": 93,
+        "line": "  /**"
+      },
+      {
+        "lineNumber": 94,
+        "line": "   * Returns a given node's children as an array of nodes. Designed for use"
+      },
+      {
+        "lineNumber": 95,
+        "line": "   * with ESTree/Babylon spec ASTs."
+      },
+      {
+        "lineNumber": 96,
+        "line": "   *"
+      },
+      {
+        "lineNumber": 97,
+        "line": "   * @param   {Node}   The node for which to retrieve its children"
+      },
+      {
+        "lineNumber": 98,
+        "line": "   * @returns {Node[]} An array of child nodes"
+      },
+      {
+        "lineNumber": 99,
+        "line": "   */"
+      },
+      {
+        "lineNumber": 100,
+        "line": "  static getChildren(node) {"
+      }
+    ],
+    "codeParams": [
+      "node"
+    ],
+    "docParams": [
+      "The"
+    ]
+  }
+]

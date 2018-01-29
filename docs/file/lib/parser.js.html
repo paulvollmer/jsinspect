@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">lib/parser.js | jsinspect</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  <script src="script/manual.js"></script>
+<meta name="description" content="jsinspect"><meta property="og:type" content="website"><meta property="og:url" content="https://github.com/danielstjules/jsinspect"><meta property="og:site_name" content="jsinspect"><meta property="og:title" content="jsinspect"><meta property="og:image" content="https://github.com/danielstjules/logo.png"><meta property="og:description" content="jsinspect"><meta property="og:author" content="https://github.com/danielstjules"><meta property="twitter:card" content="summary"><meta property="twitter:title" content="jsinspect"><meta property="twitter:description" content="jsinspect"><meta property="twitter:image" content="https://github.com/danielstjules/logo.png"></head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  <a href="test.html" data-ice="testLink">Test</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+<a style="position:relative; top:3px;" href="https://github.com/danielstjules/jsinspect"><img width="20px" src="./image/github.png"></a></header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/inspector.js~Inspector.html">Inspector</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/match.js~Match.html">Match</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/nodeUtils.js~NodeUtils.html">NodeUtils</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-parse">parse</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-childKeys">childKeys</a></span></span></li>
+<li data-ice="doc"><a data-ice="dirPath" class="nav-dir-path" href="identifiers.html#reporters">reporters</a><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/base.js~BaseReporter.html">BaseReporter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/default.js~DefaultReporter.html">DefaultReporter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/json.js~JSONReporter.html">JSONReporter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/pmd.js~PMDReporter.html">PMDReporter</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">lib/parser.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">var babylon = require(&apos;babylon&apos;);
+var debug   = require(&apos;./debug&apos;);
+
+/**
+ * Parses the specified src string with babylon, returning the resulting AST
+ * and skipping the undocumented File root node, which is neither Babylon AST
+ * nor ESTree spec compliant.
+ *
+ * @param {string} src      Source to parse
+ * @param {string} filePath Path to the file
+ */
+exports.parse = function(src, filePath) {
+  debug(`parsing ${filePath}`);
+  try {
+    return attempt(
+      () =&gt; _parse(src, filePath, &apos;script&apos;),
+      () =&gt; _parse(src, filePath, &apos;module&apos;)
+    );
+  } catch (err) {
+    let ctx = getErrorContext(err, src);
+    throw new Error(`Couldn&apos;t parse ${filePath}: ${err.message}${ctx}`);
+  }
+};
+
+function attempt(...fns) {
+  for (let i = 0; i &lt; fns.length; i++) {
+    try {
+      return fns[i]();
+    } catch (err) {
+      if (i === fns.length - 1) throw err;
+    }
+  }
+}
+
+function _parse(src, filePath, sourceType) {
+  return babylon.parse(src, {
+    allowReturnOutsideFunction: true,
+    allowImportExportEverywhere: true,
+    sourceType: sourceType,
+    sourceFilename: filePath,
+    plugins: [&apos;jsx&apos;, &apos;flow&apos;, &apos;doExpressions&apos;, &apos;objectRestSpread&apos;, &apos;decorators&apos;,
+      &apos;classProperties&apos;, &apos;exportExtensions&apos;, &apos;asyncGenerators&apos;, &apos;functionBind&apos;,
+      &apos;functionSent&apos;, &apos;dynamicImport&apos;]
+  }).program;
+}
+
+function getErrorContext(err, src) {
+  if (!err.loc || !err.loc.line || err.loc.column &gt;= 100) return &apos;&apos;;
+
+  var line = src.split(&apos;\n&apos;)[err.loc.line - 1];
+  var caret = &apos; &apos;.repeat(err.loc.column) + &apos;^&apos;;
+
+  return `\n${line}\n${caret}`;
+}
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(1.0.4)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

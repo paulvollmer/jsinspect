@@ -1,0 +1,108 @@
+{
+  "coverage": "53.92%",
+  "expectCount": 102,
+  "actualCount": 55,
+  "files": {
+    "lib/debug.js": {
+      "expectCount": 1,
+      "actualCount": 0,
+      "undocumentLines": [
+        1
+      ]
+    },
+    "lib/inspector.js": {
+      "expectCount": 32,
+      "actualCount": 15,
+      "undocumentLines": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42
+      ]
+    },
+    "lib/match.js": {
+      "expectCount": 10,
+      "actualCount": 5,
+      "undocumentLines": [
+        1,
+        2,
+        3,
+        17,
+        18
+      ]
+    },
+    "lib/nodeUtils.js": {
+      "expectCount": 15,
+      "actualCount": 14,
+      "undocumentLines": [
+        1
+      ]
+    },
+    "lib/parser.js": {
+      "expectCount": 6,
+      "actualCount": 1,
+      "undocumentLines": [
+        1,
+        2,
+        25,
+        35,
+        47
+      ]
+    },
+    "lib/reporters/base.js": {
+      "expectCount": 15,
+      "actualCount": 8,
+      "undocumentLines": [
+        1,
+        2,
+        3,
+        21,
+        22,
+        23,
+        24
+      ]
+    },
+    "lib/reporters/default.js": {
+      "expectCount": 6,
+      "actualCount": 3,
+      "undocumentLines": [
+        1,
+        2,
+        3
+      ]
+    },
+    "lib/reporters/json.js": {
+      "expectCount": 7,
+      "actualCount": 3,
+      "undocumentLines": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "lib/reporters/pmd.js": {
+      "expectCount": 10,
+      "actualCount": 6,
+      "undocumentLines": [
+        1,
+        2,
+        3,
+        4
+      ]
+    }
+  }
+}

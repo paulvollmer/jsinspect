@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../../">
+  <title data-ice="title">spec/reporters/baseSpec.js | jsinspect</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  <script src="script/manual.js"></script>
+<meta name="description" content="jsinspect"><meta property="og:type" content="website"><meta property="og:url" content="https://github.com/danielstjules/jsinspect"><meta property="og:site_name" content="jsinspect"><meta property="og:title" content="jsinspect"><meta property="og:image" content="https://github.com/danielstjules/logo.png"><meta property="og:description" content="jsinspect"><meta property="og:author" content="https://github.com/danielstjules"><meta property="twitter:card" content="summary"><meta property="twitter:title" content="jsinspect"><meta property="twitter:description" content="jsinspect"><meta property="twitter:image" content="https://github.com/danielstjules/logo.png"></head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  <a href="test.html" data-ice="testLink">Test</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+<a style="position:relative; top:3px;" href="https://github.com/danielstjules/jsinspect"><img width="20px" src="./image/github.png"></a></header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/inspector.js~Inspector.html">Inspector</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/match.js~Match.html">Match</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/nodeUtils.js~NodeUtils.html">NodeUtils</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-parse">parse</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-childKeys">childKeys</a></span></span></li>
+<li data-ice="doc"><a data-ice="dirPath" class="nav-dir-path" href="identifiers.html#reporters">reporters</a><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/base.js~BaseReporter.html">BaseReporter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/default.js~DefaultReporter.html">DefaultReporter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/json.js~JSONReporter.html">JSONReporter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/pmd.js~PMDReporter.html">PMDReporter</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">spec/reporters/baseSpec.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">var expect       = require(&apos;expect.js&apos;);
+var util         = require(&apos;util&apos;);
+var chalk        = require(&apos;chalk&apos;);
+var fixtures     = require(&apos;../fixtures&apos;);
+var helpers      = require(&apos;../helpers&apos;);
+var BaseReporter = require(&apos;../../lib/reporters/base&apos;);
+var Inspector    = require(&apos;../../lib/inspector&apos;);
+
+// A simple TestReporter for testing the BaseReporter
+class TestReporter extends BaseReporter {
+  constructor(inspector) {
+    super(inspector);
+    this._registerSummary();
+  }
+
+  _getOutput() {}
+}
+
+describe(&apos;BaseReporter&apos;, function() {
+  var inspector, reporter;
+
+  beforeEach(function() {
+    helpers.captureOutput();
+    inspector = new Inspector([fixtures.intersection], {
+      threshold: 15
+    });
+    reporter = new TestReporter(inspector);
+  });
+
+  afterEach(function() {
+    helpers.restoreOutput();
+  });
+
+  describe(&apos;constructor&apos;, function() {
+    it(&apos;accepts an inspector as an argument&apos;, function() {
+      expect(reporter._inspector).to.be(inspector);
+    });
+
+    it(&apos;registers a listener for the match event&apos;, function() {
+      expect(inspector.listeners(&apos;match&apos;)).to.have.length(1);
+    });
+  });
+
+  describe(&apos;given a match&apos;, function() {
+    it(&apos;increments the number found&apos;, function() {
+      inspector.emit(&apos;match&apos;, {});
+      helpers.restoreOutput();
+      expect(reporter._found).to.be(1);
+    });
+
+    it(&apos;invokes _getOutput&apos;, function() {
+      reporter._getOutput = function(match) {
+        return match;
+      };
+
+      inspector.emit(&apos;match&apos;, &apos;invoked&apos;);
+      helpers.restoreOutput();
+      expect(helpers.getOutput()).to.be(&apos;invoked&apos;);
+    });
+  });
+
+  describe(&apos;summary&apos;, function() {
+    it(&apos;can be printed on inspector end&apos;, function() {
+      inspector.run();
+      helpers.restoreOutput();
+      expect(helpers.getOutput()).to.not.be(null);
+    });
+
+    it(&apos;prints the correct results if no matches were found&apos;, function() {
+      inspector = new Inspector([fixtures.intersection], {
+        threshold: 40
+      });
+      var reporter = new TestReporter(inspector);
+
+      inspector.run();
+      helpers.restoreOutput();
+      expect(helpers.getOutput()).to.be(&apos;\nNo matches found across 1 file\n&apos;);
+    });
+
+    it(&apos;prints the correct results if matches were found&apos;, function() {
+      inspector.run();
+      helpers.restoreOutput();
+      expect(helpers.getOutput()).to.be(&apos;\n1 match found across 1 file\n&apos;);
+    });
+  });
+});
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(1.0.4)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

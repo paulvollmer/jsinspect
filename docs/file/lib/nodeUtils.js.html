@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">lib/nodeUtils.js | jsinspect</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  <script src="script/manual.js"></script>
+<meta name="description" content="jsinspect"><meta property="og:type" content="website"><meta property="og:url" content="https://github.com/danielstjules/jsinspect"><meta property="og:site_name" content="jsinspect"><meta property="og:title" content="jsinspect"><meta property="og:image" content="https://github.com/danielstjules/logo.png"><meta property="og:description" content="jsinspect"><meta property="og:author" content="https://github.com/danielstjules"><meta property="twitter:card" content="summary"><meta property="twitter:title" content="jsinspect"><meta property="twitter:description" content="jsinspect"><meta property="twitter:image" content="https://github.com/danielstjules/logo.png"></head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  <a href="test.html" data-ice="testLink">Test</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+<a style="position:relative; top:3px;" href="https://github.com/danielstjules/jsinspect"><img width="20px" src="./image/github.png"></a></header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/inspector.js~Inspector.html">Inspector</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/match.js~Match.html">Match</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/nodeUtils.js~NodeUtils.html">NodeUtils</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-parse">parse</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-childKeys">childKeys</a></span></span></li>
+<li data-ice="doc"><a data-ice="dirPath" class="nav-dir-path" href="identifiers.html#reporters">reporters</a><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/base.js~BaseReporter.html">BaseReporter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/default.js~DefaultReporter.html">DefaultReporter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/json.js~JSONReporter.html">JSONReporter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/pmd.js~PMDReporter.html">PMDReporter</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">lib/nodeUtils.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">var stable = require(&apos;stable&apos;);
+
+/**
+ * Cache for getChildren, holding the keys to traverse for a given Node type.
+ * Some JSX node types are hardcoded to ensure correct property traversal order.
+ * For example, this ensures that a JSXElement&apos;s children are traversed prior
+ * to the closing element.
+ */
+var childKeys = {
+  JSXElement: [&apos;openingElement&apos;, &apos;extra&apos;, &apos;children&apos;, &apos;closingElement&apos;],
+  JSXOpeningElement: [&apos;name&apos;, &apos;attributes&apos;],
+  JSXAttribute: [&apos;name&apos;, &apos;value&apos;],
+};
+
+/**
+ *
+ */
+class NodeUtils {
+  /**
+   * Walks a root node&apos;s subtrees using DFS, invoking the passed callback with
+   * three args: node, parent, and ancestors. The root node, presumably Program,
+   * is ignored.
+   *
+   * @param {Node}     root The root node of the AST to traverse
+   * @param {function} fn   Callback to invoke
+   */
+  static walkSubtrees(root, fn) {
+    var visit = (node, parent, ancestors) =&gt; {
+      fn(node, parent, ancestors);
+      ancestors = ancestors.concat(node);
+      NodeUtils.getChildren(node).forEach((child) =&gt; {
+        visit(child, node, ancestors);
+      });
+    };
+
+    NodeUtils.getChildren(root).forEach((child) =&gt; {
+      visit(child, null, []);
+    });
+  }
+
+  /**
+   * Returns an array of nodes in the passed AST, traversed using DFS. Accepts
+   * an optional maximum number, n, of nodes to return. The returned array
+   * always begins with the root node.
+   *
+   * @param   {Node}   node The root node of the AST to traverse
+   * @param   {int}    [n]  Optional max number of nodes to return
+   * @returns {Node[]}
+   */
+  static getDFSTraversal(node, n) {
+    var res = [];
+
+    var dfs = (node) =&gt; {
+      if (n &amp;&amp; res.length &gt;= n) return;
+      res.push(node);
+      NodeUtils.getChildren(node).forEach(dfs);
+    };
+
+    dfs(node);
+
+    return res.slice(0, n);
+  }
+
+  /**
+   * Returns an array of nodes in the passed AST, traversed using BFS. Accepts
+   * an optional maximum number, n, of nodes to return. The returned array
+   * always begins with the root node.
+   *
+   * @param   {Node}   node The root node of the AST to traverse
+   * @param   {int}    [n]  Optional max number of nodes to return
+   * @returns {Node[]}
+   */
+  static getBFSTraversal(node, n) {
+    var queue = [node];
+    var res = [node];
+
+    while (queue.length) {
+      node = queue.shift();
+
+      if (n &amp;&amp; res.length &gt;= n) {
+        return res.slice(0, n);
+      }
+
+      let children = NodeUtils.getChildren(node) || [];
+      for (let i = 0; i &lt; children.length; i++) {
+        queue.push(children[i]);
+        res.push(children[i]);
+      }
+    }
+
+    return res.slice(0, n);
+  }
+
+  /**
+   * Returns a given node&apos;s children as an array of nodes. Designed for use
+   * with ESTree/Babylon spec ASTs.
+   *
+   * @param   {Node}   The node for which to retrieve its children
+   * @returns {Node[]} An array of child nodes
+   */
+  static getChildren(node) {
+    var res = [];
+
+    if (!childKeys[node.type]) {
+      childKeys[node.type] = Object.keys(node).filter((key) =&gt; {
+        return key !== &apos;loc&apos; &amp;&amp; typeof node[key] === &apos;object&apos;;
+      });
+    }
+
+    // Ignore null values, as well as JSText nodes incorrectly generated
+    // by babylon that contain only newlines and spaces
+    var filterIgnored = (nodes) =&gt; nodes.filter(node =&gt; {
+      return node &amp;&amp; (node.type !== &apos;JSXText&apos; || node.value.trim());
+    });
+
+    childKeys[node.type].forEach((key) =&gt; {
+      var val = node[key];
+      if (val &amp;&amp; val.type) {
+        res.push(val);
+      } else if (val instanceof Array) {
+        res = res.concat(filterIgnored(val));
+      }
+    });
+
+    return res;
+  }
+
+  /**
+   * Returns whether or not the first node appears before the second, by
+   * comparing both their starting lines and columns.
+   *
+   * @param   {object} a
+   * @param   {object} b
+   * @returns {bool}
+   */
+  static isBefore(a, b) {
+    a = a.loc.start;
+    b = b.loc.start;
+    return a.line &lt; b.line || (a.line === b.line &amp;&amp; a.column &lt; b.column);
+  }
+
+  /**
+   * Returns whether or not the nodes are part of an ES6 module import.
+   *
+   * @param   {Node[]}  nodes
+   * @returns {boolean}
+   */
+  static isES6ModuleImport(nodes) {
+    return nodes[0] &amp;&amp; nodes[0].type === &apos;ImportDeclaration&apos;;
+  }
+
+  /**
+   * Returns whether or not the nodes belong to class boilerplate.
+   *
+   * @param   {Node[]}  nodes
+   * @returns {boolean}
+   */
+  static isES6ClassBoilerplate(nodes) {
+    var last = nodes[nodes.length - 1];
+    return last.type === &apos;ClassDeclaration&apos; || last.type === &apos;ClassBody&apos;;
+  }
+
+  /**
+   * Returns whether or not the nodes are part of an AMD require or define
+   * expression.
+   *
+   * @param   {Node[]}  nodes
+   * @returns {boolean}
+   */
+  static isAMD(nodes) {
+    var hasAMDName = function(node) {
+      if (!node || !node.name) return;
+      return (node.name === &apos;define&apos; || node.name === &apos;require&apos;);
+    }
+
+    // Iterate from last node
+    for (let i = nodes.length - 1; i &gt;= nodes.length - 5; i--) {
+      if (!nodes[i]) {
+        return false;
+      } else if (nodes[i].type !== &apos;ExpressionStatement&apos; ||
+          nodes[i].expression.type !== &apos;CallExpression&apos;) {
+        continue;
+      }
+
+      // Handle basic cases where define/require are a property
+      let callee = nodes[i].expression.callee;
+      if (hasAMDName(callee)) {
+        return true;
+      } else if (callee.type === &apos;MemberExpression&apos; &amp;&amp;
+          hasAMDName(callee.property)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Returns whether or not the nodes are part of a CommonJS require statement.
+   *
+   * @param   {Node[]}  nodes
+   * @returns {boolean}
+   */
+  static isCommonJS(nodes) {
+    if (!nodes[0]) {
+      return false;
+    } else if (nodes[0].type === &apos;ExpressionStatement&apos; &amp;&amp;
+        nodes[0].expression.type === &apos;CallExpression&apos; &amp;&amp;
+        nodes[0].expression.callee.name === &apos;require&apos;) {
+      return true;
+    } else if (nodes[0].type === &apos;VariableDeclaration&apos; &amp;&amp; nodes[0].declarations) {
+      for (let j = 0; j &lt; nodes[0].declarations.length; j++) {
+        let declaration = nodes[0].declarations[j];
+
+        if (declaration.type === &apos;VariableDeclarator&apos; &amp;&amp;
+            declaration.init &amp;&amp;
+            declaration.init.type === &apos;CallExpression&apos; &amp;&amp;
+            declaration.init.callee.name === &apos;require&apos;) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Returns whether or not all nodes are of the same type.
+   *
+   * @param   {Node[]}  nodes
+   * @returns {boolean}
+   */
+  static typesMatch(nodes) {
+    return nodes.every(node =&gt; node &amp;&amp; node.type === nodes[0].type);
+  }
+
+  /**
+   * Returns whether or not all nodes have the same identifier.
+   *
+   * @param   {Node[]}  nodes
+   * @returns {boolean}
+   */
+  static identifiersMatch(nodes) {
+    return nodes[0] &amp;&amp; nodes.every(node =&gt; {
+      return node &amp;&amp; node.name === nodes[0].name;
+    });
+  }
+
+  /**
+   * Returns whether or not all nodes have the same literal value.
+   *
+   * @param   {Node[]}  nodes
+   * @returns {boolean}
+   */
+  static literalsMatch(nodes) {
+    var isLiteral = (node) =&gt; {
+      return node.type.includes(&apos;Literal&apos;) || node.type === &apos;JSXText&apos;;
+    }
+
+    return nodes[0] &amp;&amp; nodes.every(node =&gt; {
+      return node &amp;&amp; (!isLiteral(node) || node.value === nodes[0].value);
+    });
+  }
+}
+
+module.exports = NodeUtils;
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(1.0.4)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

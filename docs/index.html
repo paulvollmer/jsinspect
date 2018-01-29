@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl">
+  <title data-ice="title">Home | jsinspect</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  <script src="script/manual.js"></script>
+<meta name="description" content="jsinspect"><meta property="og:type" content="website"><meta property="og:url" content="https://github.com/danielstjules/jsinspect"><meta property="og:site_name" content="jsinspect"><meta property="og:title" content="jsinspect"><meta property="og:image" content="https://github.com/danielstjules/logo.png"><meta property="og:description" content="jsinspect"><meta property="og:author" content="https://github.com/danielstjules"><meta property="twitter:card" content="summary"><meta property="twitter:title" content="jsinspect"><meta property="twitter:description" content="jsinspect"><meta property="twitter:image" content="https://github.com/danielstjules/logo.png"></head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  <a href="test.html" data-ice="testLink">Test</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+<a style="position:relative; top:3px;" href="https://github.com/danielstjules/jsinspect"><img width="20px" src="./image/github.png"></a></header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/inspector.js~Inspector.html">Inspector</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/match.js~Match.html">Match</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/nodeUtils.js~NodeUtils.html">NodeUtils</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-parse">parse</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-childKeys">childKeys</a></span></span></li>
+<li data-ice="doc"><a data-ice="dirPath" class="nav-dir-path" href="identifiers.html#reporters">reporters</a><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/base.js~BaseReporter.html">BaseReporter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/default.js~DefaultReporter.html">DefaultReporter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/json.js~JSONReporter.html">JSONReporter</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/lib/reporters/pmd.js~PMDReporter.html">PMDReporter</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><div data-ice="index" class="github-markdown"><p><img src="http://danielstjules.com/github/jsinspect-logo.png" alt="jsinspect"></p>
+<p>Detect copy-pasted and structurally similar JavaScript code. Requires Node.js
+6.0+, and supports ES6, JSX as well as Flow. Note: the project has been mostly
+rewritten for the 0.10 release and saw several breaking changes.</p>
+<p><a href="https://travis-ci.org/danielstjules/jsinspect"><img src="https://travis-ci.org/danielstjules/jsinspect.svg?branch=master" alt="Build Status"></a></p>
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#usage">Usage</a></li>
+<li><a href="#integration">Integration</a></li>
+<li><a href="#reporters">Reporters</a></li>
+</ul>
+<h2 id="overview">Overview</h2><p>We&apos;ve all had to deal with code smell, and duplicate code is a common source.
+While some instances are easy to spot, this type of searching is the perfect
+use-case for a helpful CLI tool.</p>
+<p>Existing solutions do exist for this purpose, but some struggle with code
+that has wildly varying identifiers or literals, and others have lackluster
+support for the JS ecosystem: ES6, JSX, Flow, ignoring module declarations
+and imports, etc.</p>
+<p>And copy-pasted code is but one type of code duplication. Common boilerplate
+and repeated logic can be identified as well using jsinspect, since it
+doesn&apos;t operate directly on tokens - it uses the ASTs of the parsed code.</p>
+<p>You have the freedom to specify a threshold determining the smallest subset of
+nodes to analyze. This will identify code with a similar structure, based
+on the AST node types, e.g. BlockStatement, VariableDeclaration,
+ObjectExpression, etc. By default, it searches nodes with matching identifiers
+and literals for copy-paste oriented detection, but this can be disabled.
+For context, identifiers include the names of variables, methods, properties,
+etc, while literals are strings, numbers, etc.</p>
+<p>The tool accepts a list of paths to parse and prints any found matches. Any
+directories among the paths are walked recursively, and only <code>.js</code> and <code>.jsx</code>
+files are analyzed. You can explicitly pass file paths that include a different
+extension as well. Any <code>node_modules</code> and <code>bower_components</code> dirs are also
+ignored.</p>
+<p><img src="https://cloud.githubusercontent.com/assets/817212/24126139/bd151a34-0da2-11e7-94a8-9742279c8566.png" alt="screenshot"></p>
+<h2 id="installation">Installation</h2><p>It can be installed via <code>npm</code> using:</p>
+<pre><code class="lang-bash"><code class="source-code prettyprint">npm install -g jsinspect</code>
+</code></pre>
+<h2 id="usage">Usage</h2><pre><code><code class="source-code prettyprint">Usage: jsinspect [options] &lt;paths ...&gt;
+
+
+Detect copy-pasted and structurally similar JavaScript code
+Example use: jsinspect -I -L -t 20 --ignore &quot;test&quot; ./path/to/src
+
+
+Options:
+
+  -h, --help                         output usage information
+  -V, --version                      output the version number
+  -t, --threshold &lt;number&gt;           number of nodes (default: 30)
+  -m, --min-instances &lt;number&gt;       min instances for a match (default: 2)
+  -c, --config [config]              path to config file (default: .jsinspectrc)
+  -r, --reporter [default|json|pmd]  specify the reporter to use
+  -I, --no-identifiers               do not match identifiers
+  -L, --no-literals                  do not match literals
+  -C, --no-color                     disable colors
+  --ignore &lt;pattern&gt;                 ignore paths matching a regex
+  --truncate &lt;number&gt;                length to truncate lines (default: 100, off: 0)
+  --debug                            print debug information</code>
+</code></pre><p>If a <code>.jsinspectrc</code> file is located in the project directory, its values will
+be used in place of the defaults listed above. For example:</p>
+<pre><code class="lang-javascript"><code class="source-code prettyprint">{
+  &quot;threshold&quot;:     30,
+  &quot;identifiers&quot;:   true,
+  &quot;literals&quot;:      true,
+  &quot;color&quot;:         true,
+  &quot;minInstances&quot;:  2,
+  &quot;ignore&quot;:        &quot;test|spec|mock&quot;,
+  &quot;reporter&quot;:      &quot;json&quot;,
+  &quot;truncate&quot;:      100,
+}</code>
+</code></pre>
+<p>On first use with a project, you may want to run the tool with the following
+options, while running explicitly on the lib/src directories, and not the
+test/spec dir.</p>
+<pre><code><code class="source-code prettyprint">jsinspect -t 50 --ignore &quot;test&quot; ./path/to/src</code>
+</code></pre><p>From there, feel free to try decreasing the threshold, ignoring identifiers
+using the <code>-I</code> flag and ignoring literals with <code>-L</code>. A lower threshold may lead
+you to discover new areas of interest for refactoring or cleanup.</p>
+<h2 id="integration">Integration</h2><p>It&apos;s simple to run jsinspect on your library source as part of a build
+process. It will exit with an error code of 0 when no matches are found,
+resulting in a passing step, and a positive error code corresponding to its
+failure. For example, with Travis CI, you could add the following entries
+to your <code>.travis.yml</code>:</p>
+<pre><code class="lang-yaml"><code class="source-code prettyprint">before_script:
+  - &quot;npm install -g jsinspect&quot;
+
+script:
+  - &quot;jsinspect ./path/to/src&quot;</code>
+</code></pre>
+<p>Note that in the above example, we&apos;re using a threshold of 30 for detecting
+structurally similar code. A higher threshold may be appropriate as well.</p>
+<p>To have jsinspect run with each job, but not block or fail the build, you can
+use something like the following:</p>
+<pre><code class="lang-yaml"><code class="source-code prettyprint">script:
+  - &quot;jsinspect ./path/to/src || true&quot;</code>
+</code></pre>
+<h2 id="reporters">Reporters</h2><p>Aside from the default reporter, both JSON and PMD CPD-style XML reporters are
+available. Note that in the JSON example below, indentation and formatting
+has been applied. Furthermore, the id property available in these reporters is
+useful for parsing by automatic scripts to determine whether or not duplicate
+code has changed between builds.</p>
+<h4 id="json">JSON</h4><pre><code class="lang-json"><code class="source-code prettyprint">[{
+  &quot;id&quot;:&quot;6ceb36d5891732db3835c4954d48d1b90368a475&quot;,
+  &quot;instances&quot;:[
+    {
+      &quot;path&quot;:&quot;spec/fixtures/intersection.js&quot;,
+      &quot;lines&quot;:[1,5],
+      &quot;code&quot;:&quot;function intersectionA(array1, array2) {\n  array1.filter(function(n) {\n    return array2.indexOf(n) != -1;\n  });\n}&quot;
+    },
+    {
+      &quot;path&quot;:&quot;spec/fixtures/intersection.js&quot;,
+      &quot;lines&quot;:[7,11],
+      &quot;code&quot;:&quot;function intersectionB(arrayA, arrayB) {\n  arrayA.filter(function(n) {\n    return arrayB.indexOf(n) != -1;\n  });\n}&quot;
+    }
+  ]
+}]</code>
+</code></pre>
+<h4 id="pmd-cpd-xml">PMD CPD XML</h4><pre><code class="lang-xml"><code class="source-code prettyprint">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+&lt;pmd-cpd&gt;
+&lt;duplication lines=&quot;10&quot; id=&quot;6ceb36d5891732db3835c4954d48d1b90368a475&quot;&gt;
+&lt;file path=&quot;/jsinspect/spec/fixtures/intersection.js&quot; line=&quot;1&quot;/&gt;
+&lt;file path=&quot;/jsinspect/spec/fixtures/intersection.js&quot; line=&quot;7&quot;/&gt;
+&lt;codefragment&gt;
+spec/fixtures/intersection.js:1,5
+function intersectionA(array1, array2) {
+  array1.filter(function(n) {
+    return array2.indexOf(n) != -1;
+  });
+}
+
+spec/fixtures/intersection.js:7,11
+function intersectionB(arrayA, arrayB) {
+  arrayA.filter(function(n) {
+    return arrayB.indexOf(n) != -1;
+  });
+}
+&lt;/codefragment&gt;
+&lt;/duplication&gt;
+&lt;/pmd-cpd&gt;</code>
+</code></pre>
+</div>
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(1.0.4)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>
