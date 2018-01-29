@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "babylon": "6.16.1",
+    "browserfs": "^1.4.3",
     "chalk": "^2.1.0",
     "commander": "^2.11.0",
     "filepaths": "0.3.0",
@@ -28,15 +29,20 @@
     "strip-json-comments": "1.0.2"
   },
   "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-preset-es2015": "^6.24.1",
     "concat-stream": "^1.5.0",
     "dirmap": "^0.0.2",
     "expect.js": "^0.3.1",
-    "mocha": "^3.5.0"
+    "mocha": "^3.5.0",
+    "webpack": "^3.10.0"
   },
   "bin": {
     "jsinspect": "./bin/jsinspect"
   },
   "scripts": {
-    "test": "mocha -R spec spec spec/reporters"
+    "test": "mocha -R spec spec spec/reporters",
+    "build": "webpack --progress -p"
   }
 }
