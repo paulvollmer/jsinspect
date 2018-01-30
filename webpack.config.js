@@ -26,13 +26,11 @@ const webpack = require('webpack');
         'NODE_ENV': JSON.stringify('production'),
       },
     }),
-    // new webpack.ProvidePlugin({ BrowserFS: 'bfsGlobal', process: 'processGlobal', Buffer: 'bufferGlobal' })
   ],
   stats: {
     colors: true,
   },
   resolve: {
-    // Use our versions of Node modules.
     alias: {
       'fs': 'browserfs/dist/shims/fs.js',
       'buffer': 'browserfs/dist/shims/buffer.js',
@@ -42,8 +40,5 @@ const webpack = require('webpack');
       'bfsGlobal': require.resolve('browserfs')
     }
   },
-  // node: {
-  //   fs: 'empty'
-  // },
   devtool: 'source-map',
  };
